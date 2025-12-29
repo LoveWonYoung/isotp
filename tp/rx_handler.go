@@ -1,4 +1,4 @@
-package tp_layer
+package tp
 
 import (
 	"errors"
@@ -65,7 +65,7 @@ func (t *Transport) handleRxSingleFrame(f *SingleFrame) {
 	t.stopReceiving()
 
 	// Non-blocking send or drop if full?
-	// For tp_layer, we usually want to ensure delivery or block.
+	// For tp, we usually want to ensure delivery or block.
 	select {
 	case t.rxDataChan <- f.Data:
 	default:

@@ -1,6 +1,6 @@
 """
 一个最小的 mock 设备，用回调收集 TP 层要发的 CAN 帧，并可主动注入接收帧。
-运行前先用 `go build -buildmode=c-shared -o tp_layer.dll ./tp_dll` 生成 DLL。
+运行前先用 `go build -buildmode=c-shared -o tp.dll ./tp_dll` 生成 DLL。
 """
 
 import ctypes
@@ -10,7 +10,7 @@ import threading
 import time
 
 # 1. 加载 DLL
-dll_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../tp_layer.dll"))
+dll_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../tp.dll"))
 lib = ctypes.CDLL(dll_path)
 
 # 2. 定义 C 类型

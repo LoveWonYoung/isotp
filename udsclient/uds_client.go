@@ -1,4 +1,4 @@
-package uds_client
+package udsclient
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/LoveWonYoung/isotp/driver"
-	"github.com/LoveWonYoung/isotp/tp_layer"
+	"github.com/LoveWonYoung/isotp/tp"
 )
 
 // 通道缓冲区大小常量
@@ -118,30 +118,30 @@ func getNRCDescription(nrc byte) string {
 
 // UDSClient 是一个高级客户端，封装了所有初始化和通信的复杂性
 type UDSClient struct {
-	stack   *tp_layer.Transport
+	stack   *tp.Transport
 	adapter *driver.ToomossAdapter
 	cancel  context.CancelFunc // 用于控制所有后台goroutine的生命周期
 	ctx     context.Context    // 客户端生命周期 context
 }
 
 // NewUDSClient 是新的构造函数，负责完成所有组件的初始化和连接。
-// 它接收一个CAN驱动实例和tp_layer配置。
-func NewUDSClient(dev driver.CANDriver, addr *tp_layer.Address, cfg tp_layer.Config) (*UDSClient, error) {
+// 它接收一个 CAN 驱动实例和 ISO-TP 配置。
+func NewUDSClient(dev driver.CANDriver, addr *tp.Address, cfg tp.Config) (*UDSClient, error) {
 	// 1. 初始化适配器并启动硬件驱动
 	adapter, err := driver.NewToomossAdapter(dev)
 	if err != nil {
 		return nil, fmt.Errorf("无法创建Toomoss适配器: %w", err)
 	}
 
-	// 2. 初始化tp_layer协议栈
-	stack := tp_layer.NewTransport(addr, cfg)
+	// 2. 初始化 ISO-TP 协议栈
+	stack := tp.NewTransport(addr, cfg)
 
 	// 3. 创建用于goroutine生命周期管理的context
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// 4. 创建内部通信channels，作为协议栈和适配器之间的桥梁
-	rxFromAdapter := make(chan tp_layer.CanMessage, adapterRxBufferSize)
-	txToAdapter := make(chan tp_layer.CanMessage, adapterTxBufferSize)
+	rxFromAdapter := make(chan tp.CanMessage, adapterRxBufferSize)
+	txToAdapter := make(chan tp.CanMessage, adapterTxBufferSize)
 
 	// 5. 启动所有必要的后台goroutines ("粘合"逻辑)
 	// a. 从适配器接收数据，送入协议栈
@@ -184,7 +184,7 @@ func NewUDSClient(dev driver.CANDriver, addr *tp_layer.Address, cfg tp_layer.Con
 			case <-ctx.Done():
 				return
 			case err := <-stack.ErrorChan:
-				log.Printf("[tp_layer Error] %v", err)
+				log.Printf("[tp Error] %v", err)
 			}
 		}
 	}()

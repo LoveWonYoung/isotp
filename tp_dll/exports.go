@@ -24,17 +24,17 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/LoveWonYoung/isotp/tp_layer"
+	"github.com/LoveWonYoung/isotp/tp"
 )
 
 // Global state
 var (
-	tpTransport *tp_layer.Transport
+	tpTransport *tp.Transport
 	txCallback  C.TxCallback
 	ctx         context.Context
 	cancel      context.CancelFunc
-	rxChan      chan tp_layer.CanMessage
-	txChan      chan tp_layer.CanMessage
+	rxChan      chan tp.CanMessage
+	txChan      chan tp.CanMessage
 )
 
 // GoInitTp initializes the ISO-TP layer.
@@ -52,22 +52,22 @@ func GoInitTp(rxID uint32, txID uint32, isFD bool, cb C.TxCallback) {
 	txCallback = cb
 
 	// Configure Address
-	addr := &tp_layer.Address{
+	addr := &tp.Address{
 		RxID: rxID,
 		TxID: txID,
 	}
 
 	// Default Config
-	config := tp_layer.Config{
+	config := tp.Config{
 		PaddingByte: nil, // Optional padding
 	}
 
 	// Create channels
-	rxChan = make(chan tp_layer.CanMessage, 100)
-	txChan = make(chan tp_layer.CanMessage, 100)
+	rxChan = make(chan tp.CanMessage, 100)
+	txChan = make(chan tp.CanMessage, 100)
 
 	// Create Transport
-	tpTransport = tp_layer.NewTransport(addr, config)
+	tpTransport = tp.NewTransport(addr, config)
 	tpTransport.SetFDMode(isFD)
 
 	// Context for lifecycle management
@@ -115,12 +115,12 @@ func GoInputCanFrame(id uint32, data *C.uint8_t, length int) {
 	// Copy data from C memory to Go slice
 	goData := C.GoBytes(unsafe.Pointer(data), C.int(length))
 
-	msg := tp_layer.CanMessage{
+	msg := tp.CanMessage{
 		ArbitrationID: id,
 		Data:          goData,
 		IsFD:          false, // Should we expose this? For now assume inferred or fixed
 		// We might need to expose isFD/isExtended in input if the stack needs it.
-		// Detailed tp_layer stack might assume standard addressing.
+		// Detailed tp stack might assume standard addressing.
 	}
 	// Note: You might want to pass IsExtended from C if needed.
 
@@ -166,7 +166,7 @@ func GoRecvTp(buffer *C.uint8_t, capacity int, timeoutMs int) int {
 
 	// We have to recreate the Recv logic here because we can't easily modify the stack to accept a timeout
 	// without changing the interface, but wait! The stack.Recv() calls stack.rxDataChan.
-	// We can't access private fields easily if we are in 'main' package but stack is in 'tp_layer'.
+	// We can't access private fields easily if we are in 'main' package but stack is in 'tp'.
 	// Wait, stack.Recv() returns (data, bool). It is non-blocking (default case).
 	// We need a blocking receive with timeout.
 
@@ -177,12 +177,12 @@ func GoRecvTp(buffer *C.uint8_t, capacity int, timeoutMs int) int {
 	// default: return nil, false
 
 	// This is a busy-wait if we loop it.
-	// Ideally we should export a BlockingRecv from tp_layer or expose the channel.
-	// Let's modify tp_layer/stack.go to export the channel or add RecvTimeout.
+	// Ideally we should export a BlockingRecv from tp or expose the channel.
+	// Let's modify tp/stack.go to export the channel or add RecvTimeout.
 	// BUT, modifying the core library might not be what the user wants if they just want a wrapper.
 	// However, busy waiting is bad.
 
-	// Let's check `tp_layer/stack.go` again.
+	// Let's check `tp/stack.go` again.
 	// public: Recv() ([]byte, bool)
 	// private: rxDataChan
 

@@ -1,4 +1,4 @@
-package log_recorder
+package logrecorder
 
 import (
 	"fmt"

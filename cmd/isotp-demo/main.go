@@ -12,11 +12,11 @@ import (
 	"fmt"
 
 	"github.com/LoveWonYoung/isotp/driver"
-	"github.com/LoveWonYoung/isotp/log_recorder"
+	"github.com/LoveWonYoung/isotp/logrecorder"
 )
 
 func main() {
-	log_recorder.InitAndRotate("can_log_")
+	logrecorder.InitAndRotate("can_log_")
 
 	// 1. 初始化CAN设备
 	var canDevice driver.CANDriver = driver.NewCanMix(driver.CANFD)

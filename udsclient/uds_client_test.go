@@ -1,4 +1,4 @@
-package uds_client
+package udsclient
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/LoveWonYoung/isotp/driver"
-	"github.com/LoveWonYoung/isotp/isotp"
+	"github.com/LoveWonYoung/isotp/tp"
 )
 
 // ============================================================================
@@ -88,7 +88,7 @@ func (m *MockCANDriver) GetWriteLog() [][]byte {
 	return append([][]byte{}, m.writeLog...)
 }
 
-// MockTransport 是 isotp.Transport 的简化 Mock
+// MockTransport 是 tp.Transport 的简化 Mock
 type MockTransport struct {
 	mu        sync.Mutex
 	sendQueue [][]byte
@@ -388,5 +388,5 @@ func BenchmarkUDSError_Error(b *testing.B) {
 	}
 }
 
-// 确保 isotp 包被使用（避免编译错误）
-var _ = isotp.CanMessage{}
+// 确保 tp 包被使用（避免编译错误）
+var _ = tp.CanMessage{}

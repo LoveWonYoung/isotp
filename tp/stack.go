@@ -1,4 +1,4 @@
-package tp_layer
+package tp
 
 import (
 	"context"
@@ -117,7 +117,7 @@ func (t *Transport) Run(ctx context.Context, rxChan <-chan CanMessage, txChan ch
 			} else {
 				// We are busy, for now drop or maybe we should have buffered in txDataChan?
 				// txDataChan IS the buffer. If we are here, we pulled it out.
-				// But tp_layer only handles one message at a time.
+				// But tp only handles one message at a time.
 				// If we are already transmitting, we can't really start another one until finished.
 				// However, the channel read should be controlled.
 				// We should ONLY read from txDataChan if we are in StateIdle.
@@ -242,7 +242,7 @@ func (t *Transport) makeTxMsg(data []byte, addrType AddressType) CanMessage {
 			// If > 8, valid DLCs are 12, 16, 20, 24, 32, 48, 64.
 			// Implement simple logic: if < 8, pad to 8. CAN FD devices might handle DLC automatically
 			// but we should provide correct length.
-			// NOTE: python-can-tp_layer pads to 8 for Classic CAN.
+			// NOTE: python-can-tp pads to 8 for Classic CAN.
 			// For FD, it pads to min_length if specified.
 			// Let's implement standard padding to 8 for Classic CAN (IsFD=false).
 			// For FD, we leave it unless max length is needed?

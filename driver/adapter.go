@@ -3,8 +3,9 @@ package driver
 import (
 	"errors"
 	"fmt"
-	"github.com/LoveWonYoung/isotp/tp_layer"
 	"log"
+
+	"github.com/LoveWonYoung/isotp/tp"
 )
 
 // _toomoss_adapter.go (与 main.go 放在同一目录下)
@@ -41,7 +42,7 @@ func (t *ToomossAdapter) Close() {
 }
 
 // TxFunc 是发送函数，它完全符合 go-uds 库的 `txfn` 签名要求
-func (t *ToomossAdapter) TxFunc(msg tp_layer.CanMessage) {
+func (t *ToomossAdapter) TxFunc(msg tp.CanMessage) {
 	err := t.driver.Write(int32(msg.ArbitrationID), msg.Data)
 	if err != nil {
 		log.Printf("ERROR: ToomossAdapter failed to send message: %v", err)
@@ -49,12 +50,12 @@ func (t *ToomossAdapter) TxFunc(msg tp_layer.CanMessage) {
 }
 
 // RxFunc 是接收函数，它完全符合 go-uds 库的 `rxfn` 签名要求
-func (t *ToomossAdapter) RxFunc() (tp_layer.CanMessage, bool) {
+func (t *ToomossAdapter) RxFunc() (tp.CanMessage, bool) {
 	select {
 	case receivedMsg, ok := <-t.rxChan:
 		if !ok {
 			// 如果通道已关闭，返回false
-			return tp_layer.CanMessage{}, false
+			return tp.CanMessage{}, false
 		}
 
 		// 假设您的驱动层已经将DLC转换为实际的数据字节长度。
@@ -67,9 +68,9 @@ func (t *ToomossAdapter) RxFunc() (tp_layer.CanMessage, bool) {
 			payloadLength = len(receivedMsg.Data) // 使用数组实际长度作为安全保障
 		}
 
-		// 正确创建 tp_layer.CanMessage
+		// 正确创建 tp.CanMessage
 		// 我们假设 UnifiedCANMessage 结构体中包含了 IsExtendedID, IsFD, BitrateSwitch 字段
-		isotpMsg := tp_layer.CanMessage{
+		isotpMsg := tp.CanMessage{
 			ArbitrationID: receivedMsg.ID,
 			// 【关键修正1】: 使用正确的长度来切片数据
 			Data: receivedMsg.Data[:payloadLength],
@@ -84,6 +85,6 @@ func (t *ToomossAdapter) RxFunc() (tp_layer.CanMessage, bool) {
 	default:
 		// 通道中无可用消息
 		// 【关键修正3】: 返回正确的新类型
-		return tp_layer.CanMessage{}, false
+		return tp.CanMessage{}, false
 	}
 }
