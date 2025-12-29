@@ -1,4 +1,4 @@
-module gitee.com/lovewonyoung/CanMix
+module github.com/LoveWonYoung/isotp
 
 go 1.23.0
 

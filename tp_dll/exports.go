@@ -24,7 +24,7 @@ import (
 	"time"
 	"unsafe"
 
-	"gitee.com/lovewonyoung/CanMix/tp_layer"
+	"github.com/LoveWonYoung/isotp/tp_layer"
 )
 
 // Global state

@@ -10,8 +10,9 @@ package main
 
 import (
 	"fmt"
-	"gitee.com/lovewonyoung/CanMix/driver"
-	"gitee.com/lovewonyoung/CanMix/log_recorder"
+
+	"github.com/LoveWonYoung/isotp/driver"
+	"github.com/LoveWonYoung/isotp/log_recorder"
 )
 
 func main() {

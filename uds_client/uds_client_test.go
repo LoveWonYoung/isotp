@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"gitee.com/lovewonyoung/CanMix/driver"
-	"gitee.com/lovewonyoung/CanMix/isotp"
+	"github.com/LoveWonYoung/isotp/driver"
+	"github.com/LoveWonYoung/isotp/isotp"
 )
 
 // ============================================================================
