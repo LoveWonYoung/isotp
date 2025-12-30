@@ -26,7 +26,10 @@ go.work.sum
 
 # env file
 .env
-
+DLLs/
 # Editor/IDE
-# .idea/
-# .vscode/
+ .idea/
+ .vscode/
+
+# Local Go build cache (set via GOCACHE during tests)
+.gocache/
