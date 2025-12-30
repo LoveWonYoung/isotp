@@ -170,6 +170,7 @@ func (c *CanMix) Init() error {
 
 func (c *CanMix) Start() {
 	log.Println("CAN-FD驱动的中央读取服务已启动...")
+	c.drainInitialBuffer()
 	go c.readLoop()
 }
 
@@ -211,13 +212,13 @@ func (c *CanMix) readLoop() {
 				}
 
 				// 使用统一的日志函数
-				msgType := c.canType
-				if msg.Flags == CAN_MSG_FLAG_STD {
-					msgType = CAN
-				} else {
-					msgType = CANFD
-				}
-				logCANMessage("RX", unifiedMsg.ID, unifiedMsg.DLC, unifiedMsg.Data[:unifiedMsg.DLC], msgType)
+				// msgType := c.canType
+				// if msg.Flags == CAN_MSG_FLAG_STD {
+				// 	msgType = CAN
+				// } else {
+				// 	msgType = CANFD
+				// }
+				// logCANMessage("RX", unifiedMsg.ID, unifiedMsg.DLC, unifiedMsg.Data[:unifiedMsg.DLC], msgType)
 
 				select {
 				case c.rxChan <- unifiedMsg:
@@ -226,6 +227,25 @@ func (c *CanMix) readLoop() {
 				}
 			}
 		}
+	}
+}
+
+// drainInitialBuffer 从设备反复读取直到没有剩余消息，目的是在驱动正式进入
+// readLoop 前清空硬件缓存，避免初始化时把历史报文一次性塞满 rxChan
+func (c *CanMix) drainInitialBuffer() {
+	var canFDMsg [MsgBufferSize]CANFD_MSG
+	for {
+		n, _, _ := syscall.SyscallN(
+			CANFD_GetMsg,
+			uintptr(DevHandle[DEVIndex]),
+			uintptr(CanChannel),
+			uintptr(unsafe.Pointer(&canFDMsg[0])),
+			uintptr(len(canFDMsg)),
+		)
+		if int(n) <= 0 {
+			break
+		}
+		// 若需要可在此统计已丢弃数量，当前选择静默丢弃以减少启动日志噪声
 	}
 }
 
@@ -259,7 +279,7 @@ func (c *CanMix) Write(id int32, data []byte) error {
 	sendRet, _, _ := syscall.SyscallN(CANFD_SendMsg, uintptr(DevHandle[DEVIndex]), uintptr(CanChannel), uintptr(unsafe.Pointer(&canFDMsg[0])), uintptr(len(canFDMsg)))
 
 	if int(sendRet) == len(canFDMsg) {
-		logCANMessage("TX", uint32(id), byte(len(data)), canFDMsg[0].Data[:canFDMsg[0].DLC], c.canType)
+		// logCANMessage("TX", uint32(id), byte(len(data)), canFDMsg[0].Data[:canFDMsg[0].DLC], c.canType)
 	} else {
 		log.Printf("错误: CAN/CANFD消息发送失败, ID=0x%03X", id)
 		return errors.New("CAN/CANFD消息发送失败")
