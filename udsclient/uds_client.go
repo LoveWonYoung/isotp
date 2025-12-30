@@ -216,6 +216,12 @@ func (c *UDSClient) SendAndRecv(payload []byte, timeout time.Duration) ([]byte, 
 //   - 自动重试机制 (仅对可重试错误)
 //   - 响应 SID 验证
 func (c *UDSClient) RequestWithContext(ctx context.Context, payload []byte, opts RequestOptions) ([]byte, error) {
+	return c.RequestWithContextAndAddressType(ctx, payload, opts, tp.Physical)
+}
+
+// RequestWithContextAndAddressType 支持指定寻址类型（物理/功能）的请求。
+// 功能寻址通常用于广播请求（例如 0x7DF）。
+func (c *UDSClient) RequestWithContextAndAddressType(ctx context.Context, payload []byte, opts RequestOptions, addrType tp.AddressType) ([]byte, error) {
 	if len(payload) == 0 {
 		return nil, errors.New("请求 payload 不能为空")
 	}
@@ -230,7 +236,7 @@ func (c *UDSClient) RequestWithContext(ctx context.Context, payload []byte, opts
 			time.Sleep(opts.RetryDelay)
 		}
 
-		response, err := c.singleRequest(ctx, payload, opts.Timeout)
+		response, err := c.singleRequestWithAddressType(ctx, payload, opts.Timeout, addrType)
 		if err != nil {
 			// 检查是否是 context 取消
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
@@ -270,6 +276,10 @@ func (c *UDSClient) RequestWithContext(ctx context.Context, payload []byte, opts
 
 // singleRequest 执行单次请求（不含重试逻辑）
 func (c *UDSClient) singleRequest(ctx context.Context, payload []byte, timeout time.Duration) ([]byte, error) {
+	return c.singleRequestWithAddressType(ctx, payload, timeout, tp.Physical)
+}
+
+func (c *UDSClient) singleRequestWithAddressType(ctx context.Context, payload []byte, timeout time.Duration, addrType tp.AddressType) ([]byte, error) {
 	// 发送前清空可能存在的旧响应
 	for {
 		if _, ok := c.stack.Recv(); !ok {
@@ -277,7 +287,7 @@ func (c *UDSClient) singleRequest(ctx context.Context, payload []byte, timeout t
 		}
 	}
 
-	c.stack.Send(payload) // 将数据包放入发送队列
+	c.stack.SendWithAddressType(payload, addrType) // 将数据包放入发送队列
 
 	deadline := time.NewTimer(timeout)
 	defer deadline.Stop()
@@ -334,6 +344,18 @@ func (c *UDSClient) RequestWithTimeout(payload []byte, timeout time.Duration) ([
 	opts := DefaultRequestOptions()
 	opts.Timeout = timeout
 	return c.RequestWithContext(context.Background(), payload, opts)
+}
+
+// RequestFunctional 以功能寻址方式发送 UDS 请求（例如 0x7DF 广播）。
+func (c *UDSClient) RequestFunctional(payload []byte) ([]byte, error) {
+	return c.RequestWithContextAndAddressType(context.Background(), payload, DefaultRequestOptions(), tp.Functional)
+}
+
+// RequestFunctionalWithTimeout 以功能寻址发送，并自定义超时。
+func (c *UDSClient) RequestFunctionalWithTimeout(payload []byte, timeout time.Duration) ([]byte, error) {
+	opts := DefaultRequestOptions()
+	opts.Timeout = timeout
+	return c.RequestWithContextAndAddressType(context.Background(), payload, opts, tp.Functional)
 }
 
 // SetFDMode 允许动态切换CAN FD模式。

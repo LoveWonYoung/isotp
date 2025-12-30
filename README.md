@@ -63,6 +63,7 @@ func main() {
 - `NewUDSClient(dev, addr, cfg)`：完成驱动启动、适配器连接和 ISO-TP 协议栈运行。
 - `Request(payload []byte)` / `RequestWithTimeout`：简单请求；默认 `Timeout=500ms`、`MaxRetries=3`、`RetryDelay=100ms`。
 - `RequestWithContext(ctx, payload, opts)`：可自定义超时/重试，并支持上层 `Context` 取消。
+- `RequestFunctional` / `RequestFunctionalWithTimeout`：以功能寻址（Functional, 如 0x7DF 广播）发送请求。
 - `UDSError`：负响应错误类型，包含 `ServiceID`、`NRC`、`Message`，`IsRetryable()` 用于判定是否自动重试。
 - `SetFDMode(isFD bool)`：运行时切换 CAN FD。
 - `Close()` / `IsClosed()`：关闭并回收资源。
@@ -101,6 +102,24 @@ cfg.BlockSize = 0    // python: blocksize=0
 cfg.StMin = 20       // python: stmin=20 (ms)
 client, _ := udsclient.NewUDSClient(dev, addr, cfg)
 ```
+
+### 功能寻址（Functional Addressing）示例
+```go
+addr, _ := tp.NewAddress(
+	tp.Normal11Bit,
+	tp.WithTxID(0x7DF), // 功能寻址 ID
+	tp.WithRxID(0x7E8), // 期望首个响应的物理 ID（如需）
+)
+client, _ := udsclient.NewUDSClient(dev, addr, tp.DefaultConfig())
+
+// 以功能寻址方式发送 0x28 服务（通信控制），超时 1s
+resp, err := client.RequestFunctionalWithTimeout([]byte{0x28, 0x00}, time.Second)
+if err != nil {
+	log.Fatalf("功能寻址请求失败: %v", err)
+}
+log.Printf("response: % X", resp)
+```
+> 功能寻址请求一般应为单帧（典型的广播诊断），本库会返回最先收到的一条响应。
 
 ## 测试
 ```bash

@@ -19,7 +19,7 @@ type Transport struct {
 
 	// Channels replaced queues
 	rxDataChan chan []byte
-	txDataChan chan []byte
+	txDataChan chan txRequest
 
 	rxFrameLen           int
 	txFrameLen           int
@@ -31,6 +31,7 @@ type Transport struct {
 	remoteStmin          time.Duration
 	lastFlowControlFrame *FlowControlFrame
 	pendingFlowControlTx bool
+	currentTxAddrType    AddressType
 
 	// Native timers
 	timerRxCF    *time.Timer
@@ -47,11 +48,16 @@ type Transport struct {
 	ErrorChan chan error
 }
 
+type txRequest struct {
+	payload  []byte
+	addrType AddressType
+}
+
 func NewTransport(address *Address, cfg Config) *Transport {
 	t := &Transport{
 		address:       address,
 		rxDataChan:    make(chan []byte, 10), // Buffer size can be tuned
-		txDataChan:    make(chan []byte, 10),
+		txDataChan:    make(chan txRequest, 10),
 		IsFD:          false,
 		MaxDataLength: 8,
 		// Initialize timers with config values, but stopped
@@ -79,9 +85,15 @@ func (t *Transport) SetFDMode(isFD bool) {
 	}
 }
 
-// Send sends data. It might block if the send buffer is full.
+// Send sends data with physical addressing. It might block if the send buffer is full.
 func (t *Transport) Send(data []byte) {
-	t.txDataChan <- data
+	t.txDataChan <- txRequest{payload: data, addrType: Physical}
+}
+
+// SendWithAddressType sends data with the specified addressing type (physical/functional).
+// Functional addressing is typically used for broadcast requests like 0x7DF.
+func (t *Transport) SendWithAddressType(data []byte, addrType AddressType) {
+	t.txDataChan <- txRequest{payload: data, addrType: addrType}
 }
 
 // Recv receives data. It matches the old signature but now pulls from channel.
@@ -109,11 +121,11 @@ func (t *Transport) Run(ctx context.Context, rxChan <-chan CanMessage, txChan ch
 		case msg := <-rxChan:
 			t.ProcessRx(msg, txChan)
 
-		case data := <-t.txDataChan:
+		case req := <-t.txDataChan:
 			// User wants to send data
 			if t.txState == StateIdle {
 				// Start transmission
-				t.startTransmission(data, txChan)
+				t.startTransmission(req, txChan)
 			} else {
 				// We are busy, for now drop or maybe we should have buffered in txDataChan?
 				// txDataChan IS the buffer. If we are here, we pulled it out.
@@ -152,7 +164,7 @@ func (t *Transport) RunEventLoop(ctx context.Context, rxChan <-chan CanMessage, 
 	defer t.cleanup()
 
 	for {
-		var txDataEnable <-chan []byte
+		var txDataEnable <-chan txRequest
 		if t.txState == StateIdle {
 			txDataEnable = t.txDataChan
 		}
@@ -164,8 +176,8 @@ func (t *Transport) RunEventLoop(ctx context.Context, rxChan <-chan CanMessage, 
 		case msg := <-rxChan:
 			t.ProcessRx(msg, txChan)
 
-		case data := <-txDataEnable:
-			t.startTransmission(data, txChan)
+		case req := <-txDataEnable:
+			t.startTransmission(req, txChan)
 
 		case <-t.timerRxCF.C:
 			fmt.Println("接收连续帧超时，重置接收状态。")
@@ -189,10 +201,10 @@ func (t *Transport) cleanup() {
 	t.timerTxSTmin.Stop()
 }
 
-func (t *Transport) startTransmission(data []byte, txChan chan<- CanMessage) {
+func (t *Transport) startTransmission(req txRequest, txChan chan<- CanMessage) {
 	// ... Logic from handleTxIdle ...
 	// Requires refactoring handleTxIdle to direct action instead of returning msg
-	t.initiateTx(data, txChan)
+	t.initiateTx(req, txChan)
 }
 
 // Internal helpers

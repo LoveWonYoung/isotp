@@ -10,9 +10,10 @@ import (
 
 // initiateTx starts the transmission of a new message.
 // It is called when data arrives on txDataChan and state is Idle.
-func (t *Transport) initiateTx(payload []byte, txChan chan<- CanMessage) {
-	t.txBuffer = payload
-	t.txFrameLen = len(payload)
+func (t *Transport) initiateTx(req txRequest, txChan chan<- CanMessage) {
+	t.txBuffer = req.payload
+	t.txFrameLen = len(req.payload)
+	t.currentTxAddrType = req.addrType
 
 	// 判断是单帧还是多帧
 	sfPciSize := 1
@@ -22,14 +23,14 @@ func (t *Transport) initiateTx(payload []byte, txChan chan<- CanMessage) {
 
 	if t.txFrameLen+sfPciSize <= t.MaxDataLength {
 		// 作为单帧发送
-		data, err := createSingleFramePayload(payload, t.MaxDataLength)
+		data, err := createSingleFramePayload(req.payload, t.MaxDataLength)
 		if err != nil {
 			t.fireError(fmt.Errorf("Error creating SF: %v", err))
 			t.stopSending()
 			return
 		}
 
-		msg := t.makeTxMsg(data, Physical)
+		msg := t.makeTxMsg(data, t.currentTxAddrType)
 		select {
 		case txChan <- msg:
 			// Sent successfully
@@ -61,7 +62,7 @@ func (t *Transport) initiateTx(payload []byte, txChan chan<- CanMessage) {
 		t.txSeqNum = 1
 		t.txState = StateWaitFC
 
-		msg := t.makeTxMsg(data, Physical)
+		msg := t.makeTxMsg(data, t.currentTxAddrType)
 		select {
 		case txChan <- msg:
 		default:
@@ -149,7 +150,7 @@ func (t *Transport) handleTxTransmit(txChan chan<- CanMessage) {
 	t.txSeqNum = (t.txSeqNum + 1) % 16
 	t.txBlockCounter++
 
-	msg := t.makeTxMsg(data, Physical)
+	msg := t.makeTxMsg(data, t.currentTxAddrType)
 	select {
 	case txChan <- msg:
 	default:
