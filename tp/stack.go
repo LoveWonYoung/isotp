@@ -2,7 +2,6 @@ package tp
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 )
@@ -54,6 +53,14 @@ type txRequest struct {
 }
 
 func NewTransport(address *Address, cfg Config) *Transport {
+	// Validate configuration
+	if err := cfg.Validate(); err != nil {
+		// Since NewTransport doesn't return error, we should probably panic or log?
+		// For now, let's just proceed as we can't change signature easily without breaking API.
+		// In a major version bump, we should return (*Transport, error).
+		fmt.Println("Warning: Invalid ISOTP Config:", err)
+	}
+
 	t := &Transport{
 		address:       address,
 		rxDataChan:    make(chan []byte, 10), // Buffer size can be tuned
@@ -108,55 +115,8 @@ func (t *Transport) Recv() ([]byte, bool) {
 
 // Run starts the protocol stack event loop.
 func (t *Transport) Run(ctx context.Context, rxChan <-chan CanMessage, txChan chan<- CanMessage) {
-	defer t.cleanup()
-
-	for {
-		// Calculate nearest timeout for select (if we were using a single timer, but we have 3)
-		// With 3 timers, we just select on their channels.
-
-		select {
-		case <-ctx.Done():
-			return
-
-		case msg := <-rxChan:
-			t.ProcessRx(msg, txChan)
-
-		case req := <-t.txDataChan:
-			// User wants to send data
-			if t.txState == StateIdle {
-				// Start transmission
-				t.startTransmission(req, txChan)
-			} else {
-				// We are busy, for now drop or maybe we should have buffered in txDataChan?
-				// txDataChan IS the buffer. If we are here, we pulled it out.
-				// But tp only handles one message at a time.
-				// If we are already transmitting, we can't really start another one until finished.
-				// However, the channel read should be controlled.
-				// We should ONLY read from txDataChan if we are in StateIdle.
-				// BUT 'select' doesn't support disabling cases easily without nil channels.
-				// Let's use the nil-channel pattern.
-				t.fireError(errors.New("Error: Concurrent underlying send (logic error in select handling)"))
-			}
-
-		case <-t.timerRxCF.C:
-			// Rx Timeout waiting for Consecutive Frame
-			fmt.Println("接收连续帧超时，重置接收状态。")
-			t.stopReceiving()
-
-		case <-t.timerRxFC.C:
-			// Tx Timeout waiting for Flow Control
-			fmt.Println("等待流控帧超时，停止发送。")
-			t.stopSending()
-
-		case <-t.timerTxSTmin.C:
-			// Tx STmin timer expired, ready to send next CF
-			t.handleTxTransmit(txChan)
-		}
-
-		// Post-event check: Are we idle? If so, we can accept new Tx data.
-		// To implement "only read txDataChan when Idle", we can split the select or use a variable channel.
-		// Actually, let's refine the loop below.
-	}
+	// Delegate to the optimized loop that gates tx reads on state and guards timers.
+	t.RunEventLoop(ctx, rxChan, txChan)
 }
 
 // RunOptimized is the loop with proper state handling
@@ -229,6 +189,9 @@ func (t *Transport) stopSending() {
 	t.txFrameLen = 0
 	t.txSeqNum = 0
 	t.txBlockCounter = 0
+	t.remoteBlocksize = 0
+	t.remoteStmin = 0
+	t.wftCounter = 0
 	if !t.timerRxFC.Stop() {
 		select {
 		case <-t.timerRxFC.C:
@@ -248,37 +211,49 @@ func (t *Transport) makeTxMsg(data []byte, addrType AddressType) CanMessage {
 	fullPayload := append(t.address.TxPayloadPrefix, data...)
 
 	// Padding
-	if t.config.PaddingByte != nil {
-		if t.IsFD {
-			// For FD, we pad to next valid DLC. But simple padding: if < 8 pad to 8.
-			// If > 8, valid DLCs are 12, 16, 20, 24, 32, 48, 64.
-			// Implement simple logic: if < 8, pad to 8. CAN FD devices might handle DLC automatically
-			// but we should provide correct length.
-			// NOTE: python-can-tp pads to 8 for Classic CAN.
-			// For FD, it pads to min_length if specified.
-			// Let's implement standard padding to 8 for Classic CAN (IsFD=false).
-			// For FD, we leave it unless max length is needed?
-			// Spec says padding is used to avoid variable length frames in some cases.
-			// Let's stick to: if !IsFD and len < 8, pad.
+	if t.config.PaddingByte != nil || t.config.TxDataMinLength > 0 {
+		targetLen := 0
+
+		if t.config.TxDataMinLength > 0 {
+			targetLen = t.config.TxDataMinLength
 		}
 
-		targetLen := 8
-		if t.IsFD {
-			// For FD, we could pad to nearest DLC, but let's stick to 8 if small.
-			// Actually, usually padding is ONLY for classic CAN to make it exactly 8.
-			if len(fullPayload) < 8 {
-				targetLen = 8
+		// Backward compatibility / Standard behavior: if PaddingByte is set but TxDataMinLength is 0
+		// we likely want to pad to 8 (Classic CAN) or maybe DLC-based (CAN FD).
+		// Currently in Python-CAN-ISOTP:
+		// If tx_data_min_length is set, it pads to that.
+		// If tx_padding is set, it pads to tx_data_length (which defaults to 8).
+		// So if TxDataMinLength is not set, but PaddingByte is, implementation implies we pad to 'MaxDataLength' or just 8?
+		// Original logic was: if PaddingByte != nil, pad to 8 (or DLC for FD).
+		if targetLen == 0 && t.config.PaddingByte != nil {
+			if t.IsFD {
+				// FD handling logic
+				if len(fullPayload) < 8 {
+					targetLen = 8
+				} else {
+					targetLen = len(fullPayload)
+				}
 			} else {
-				targetLen = len(fullPayload)
+				// Classic CAN
+				targetLen = 8
 			}
-		} else {
-			targetLen = 8
 		}
 
 		if len(fullPayload) < targetLen {
+			paddingVal := byte(0xCC) // Default padding if not specified? No, code says *PaddingByte
+			if t.config.PaddingByte != nil {
+				paddingVal = *t.config.PaddingByte
+			} else {
+				// If TxDataMinLength is set but PaddingByte is nil, Python implementation uses 0xCC or 0x00?
+				// Actually Python says "tx_padding: Integer to use for padding. If None, no padding is used."
+				// But if tx_data_min_length is set, we MUST pad.
+				// If PaddingByte is nil here, we should probably default to something (0xCC is common in automotive).
+				paddingVal = 0xCC
+			}
+
 			padding := make([]byte, targetLen-len(fullPayload))
 			for i := range padding {
-				padding[i] = *t.config.PaddingByte
+				padding[i] = paddingVal
 			}
 			fullPayload = append(fullPayload, padding...)
 		}

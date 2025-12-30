@@ -83,10 +83,26 @@ func (t *Transport) handleTxFlowControl(fc *FlowControlFrame) {
 		return
 	}
 
-	t.timerRxFC.Stop()
+	// Prevent any pending CF timer from firing while we react to the new FC.
 	t.timerTxSTmin.Stop()
 
 	switch fc.FlowStatus {
+	case FlowStatusWait:
+		t.wftCounter++
+
+		limit := t.config.MaxWaitFrame
+		if limit == 0 {
+			limit = 20 // Default to 20 if not specified
+		}
+
+		if t.wftCounter > limit {
+			t.fireError(errors.New("错误：等待帧(Wait Frame)数量超出最大限制"))
+			t.stopSending()
+			return
+		}
+		// Extend N_Bs while we keep waiting for a usable FC.
+		t.resetTxFCTimer()
+
 	case FlowStatusContinueToSend:
 		t.wftCounter = 0
 		t.remoteBlocksize = fc.BlockSize
@@ -102,17 +118,13 @@ func (t *Transport) handleTxFlowControl(fc *FlowControlFrame) {
 		// and prevents blocking the RX loop for too long.
 		t.resetTxSTminTimer(fc.STmin)
 
-		// Check WFT
-		// Uses a hardcoded limit for now as it's not in standard config usually, or add to config?
-		// Let's use a safe default constant.
-		const MaxWaitFrames = 20
-		if t.wftCounter > MaxWaitFrames {
-			t.fireError(errors.New("错误：等待帧(Wait Frame)数量超出最大限制"))
-			t.stopSending()
-		} else {
-			t.resetTxFCTimer()
+		// Stop the Flow Control timeout now that we received a valid FC.
+		if !t.timerRxFC.Stop() {
+			select {
+			case <-t.timerRxFC.C:
+			default:
+			}
 		}
-
 	case FlowStatusOverflow:
 		t.fireError(errors.New("错误：对方缓冲区溢出，停止发送"))
 		t.stopSending()

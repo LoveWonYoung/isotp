@@ -20,6 +20,15 @@ type Config struct {
 	// Parameters
 	BlockSize int
 	StMin     int
+
+	// MaxWaitFrame (WFTMax) defines the maximum number of Flow Control Wait frames allowed.
+	// 0 means not allowed (if strict) or default behavior.
+	MaxWaitFrame int
+
+	// TxDataMinLength forces the transmitted data length to be at least this value.
+	// Used for padding short frames (e.g. to 8 bytes for CAN 2.0).
+	// If 0, it means no forced minimum length (except what's required by protocol).
+	TxDataMinLength int
 }
 
 // DefaultConfig returns the standard ISO-15765-2 default messages.
@@ -38,5 +47,15 @@ func DefaultConfig() Config {
 
 		BlockSize: 0,  // BlockSize 0 means unlimited
 		StMin:     20, // 20ms separation time
+
+		MaxWaitFrame:    0, // Default 0
+		TxDataMinLength: 0, // Default 0
 	}
+}
+
+// Validate checks if the configuration parameters are valid.
+func (c *Config) Validate() error {
+	// Simple validation logic
+	// In the future, we can add range checks for timeouts, etc.
+	return nil
 }
