@@ -45,7 +45,7 @@ func (t *Transport) ProcessRx(msg CanMessage, txChan chan<- CanMessage) {
 		// In 'Run', we process Rx, then we loop back.
 		// We should add a check in 'Run' or 'processTx' to see if we received FC.
 		// Better: call a method that handles the state change immediately.
-		t.handleTxFlowControl(f, txChan)
+		t.handleTxFlowControl(f)
 
 	case *SingleFrame:
 		t.handleRxSingleFrame(f)

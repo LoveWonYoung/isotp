@@ -25,7 +25,7 @@ func (t *Transport) initiateTx(req txRequest, txChan chan<- CanMessage) {
 		// 作为单帧发送
 		data, err := createSingleFramePayload(req.payload, t.MaxDataLength)
 		if err != nil {
-			t.fireError(fmt.Errorf("Error creating SF: %v", err))
+			t.fireError(fmt.Errorf("error creating SF: %v", err))
 			t.stopSending()
 			return
 		}
@@ -35,7 +35,7 @@ func (t *Transport) initiateTx(req txRequest, txChan chan<- CanMessage) {
 		case txChan <- msg:
 			// Sent successfully
 		default:
-			t.fireError(errors.New("Tx Channel full, dropping SF"))
+			t.fireError(errors.New("tx Channel full, dropping SF"))
 		}
 		// Done
 		t.stopSending() // Resets state to Idle
@@ -54,7 +54,7 @@ func (t *Transport) initiateTx(req txRequest, txChan chan<- CanMessage) {
 
 		data, err := createFirstFramePayload(firstChunk, t.txFrameLen, t.MaxDataLength)
 		if err != nil {
-			t.fireError(fmt.Errorf("Error creating FF: %v", err))
+			t.fireError(fmt.Errorf("error creating FF: %v", err))
 			t.stopSending()
 			return
 		}
@@ -66,7 +66,7 @@ func (t *Transport) initiateTx(req txRequest, txChan chan<- CanMessage) {
 		select {
 		case txChan <- msg:
 		default:
-			t.fireError(errors.New("Tx Channel full, dropping FF"))
+			t.fireError(errors.New("tx Channel full, dropping FF"))
 			t.stopSending()
 			return
 		}
@@ -76,7 +76,7 @@ func (t *Transport) initiateTx(req txRequest, txChan chan<- CanMessage) {
 	}
 }
 
-func (t *Transport) handleTxFlowControl(fc *FlowControlFrame, txChan chan<- CanMessage) {
+func (t *Transport) handleTxFlowControl(fc *FlowControlFrame) {
 	if t.txState != StateWaitFC {
 		// We might receive FC when we are not waiting for it (e.g. unsolicited or late).
 		// Just ignore.
@@ -142,7 +142,7 @@ func (t *Transport) handleTxTransmit(txChan chan<- CanMessage) {
 
 	data, err := createConsecutiveFramePayload(chunk, t.txSeqNum)
 	if err != nil {
-		t.fireError(fmt.Errorf("Error creating CF: %v", err))
+		t.fireError(fmt.Errorf("error creating CF: %v", err))
 		t.stopSending()
 		return
 	}
@@ -154,7 +154,7 @@ func (t *Transport) handleTxTransmit(txChan chan<- CanMessage) {
 	select {
 	case txChan <- msg:
 	default:
-		t.fireError(errors.New("Tx Channel full, dropping CF"))
+		t.fireError(errors.New("tx Channel full, dropping CF"))
 		// If we drop a CF, the transfer is likely corrupted. Abort?
 		t.stopSending()
 		return
