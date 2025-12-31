@@ -256,7 +256,7 @@ func (c *UDSClient) RequestWithContextAndAddressType(ctx context.Context, payloa
 		if len(response) > 0 && response[0] != expectedResponseSID {
 			// 检查是否是负响应
 			if response[0] == 0x7F && len(response) >= 3 {
-				return nil, &UDSError{
+				return response, &UDSError{
 					ServiceID: response[1],
 					NRC:       response[2],
 					Message:   getNRCDescription(response[2]),
