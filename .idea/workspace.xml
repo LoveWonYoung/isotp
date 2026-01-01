@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7aa64aff-6e29-438e-b694-3c9b904e5e10" name="更改" comment="Add support for functional addressing in UDS client and transport layer">
+      <change beforePath="$PROJECT_DIR$/cmd/isotp-demo/main.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/_toomoss_can.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/adapter.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/common.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/functools.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/mock_darwin.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/toomoss_can_fd.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/toomoss_device.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/windows_loadlibrary_x64.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/windows_loadlibrary_x86.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logrecorder/log_recorder.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/response_code/response_code.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/address.go" beforeDir="false" afterPath="$PROJECT_DIR$/tp/address.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/benchmark_test.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/config.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/config_test.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/framing.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/framing_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/tp/framing_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/message.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/pdu.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/rx_handler.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/stack.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/transport_test.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp/tx_handler.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/udsclient/uds_client.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/udsclient/uds_client_test.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/interface_queue.go" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="GOROOT" url="file:///usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;LoveWonYoung&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/LoveWonYoung/isotp.git&quot;,
+    &quot;accountId&quot;: &quot;68a13df2-178f-4e94-b41b-f9fa718f77f3&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="37WbNRyCL0a8VFSdcn1Saf66Bjj" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Go 测试.go_isotp/tp 中的 TestPDU_FlowControl.executor": "Run",
+    "Go 测试.go_isotp/tp 中的 TestPDU_SingleFrame_EscapeSequence.executor": "Run",
+    "Go 测试.go_isotp/tp 中的 TestPDU_SingleFrame_Standard.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.GoLinterPluginOnboarding": "true",
+    "RunOnceActivity.GoLinterPluginStorageMigration": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "git-widget-placeholder": "gofork",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "/Users/lianmin/Documents/GitHub/isotp",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/cmd" />
+      <recent name="$PROJECT_DIR$/tp" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go 测试.go_isotp/tp 中的 TestPDU_FlowControl">
+    <configuration name="go_isotp/tp 中的 TestPDU_FlowControl" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="isotp" />
+      <working_directory value="$PROJECT_DIR$/tp" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="go_isotp/tp" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestPDU_FlowControl\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go_isotp/tp 中的 TestPDU_SingleFrame_EscapeSequence" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="isotp" />
+      <working_directory value="$PROJECT_DIR$/tp" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="go_isotp/tp" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestPDU_SingleFrame_EscapeSequence\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go_isotp/tp 中的 TestPDU_SingleFrame_Standard" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="isotp" />
+      <working_directory value="$PROJECT_DIR$/tp" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="go_isotp/tp" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestPDU_SingleFrame_Standard\E$" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go 测试.go_isotp/tp 中的 TestPDU_FlowControl" />
+        <item itemvalue="Go 测试.go_isotp/tp 中的 TestPDU_SingleFrame_EscapeSequence" />
+        <item itemvalue="Go 测试.go_isotp/tp 中的 TestPDU_SingleFrame_Standard" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-gosdk-f466f9b0953e-146d08934cbf-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-252.27397.100" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-GO-252.27397.100" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="7aa64aff-6e29-438e-b694-3c9b904e5e10" name="更改" comment="" />
+      <created>1767021733403</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1767021733403</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Update .gitignore to include DLLs and local Go build cache" />
+    <MESSAGE value="Add support for functional addressing in UDS client and transport layer" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for functional addressing in UDS client and transport layer" />
+  </component>
+  <component name="VgoProject">
+    <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>
