@@ -1,3 +1,3 @@
-module go_isotp
+module github.com/LoveWonYoung/isotp
 
 go 1.25
